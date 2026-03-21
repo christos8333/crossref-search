@@ -1,25 +1,69 @@
 <script setup lang="ts">
-import AppCard from '@/components/AppCard.vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
+import { useSearch } from '@/composables/useSearch';
+import SearchBar from '@/components/SearchBar.vue';
+import ResultList from '@/components/ResultList.vue';
+import FacetPanel from '@/components/FacetPanel.vue';
 
+const {
+  activeTypes,
+  activeYears,
+  query,
+  setQuery,
+  isLoading,
+  items,
+  facets,
+  toggleType,
+  toggleYear,
+} = useSearch();
+
+const debouncedQuery = ref(query.value);
+let timer: ReturnType<typeof setTimeout> | null = null;
+
+watch(
+  query,
+  (next) => {
+    debouncedQuery.value = next;
+  },
+  { immediate: true },
+);
+
+const onUpdateQuery = (next: string) => {
+  debouncedQuery.value = next;
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => {
+    setQuery(next);
+  }, 500);
+};
+
+const onToggleType = (type: string) => {
+  toggleType(type);
+};
+
+const onToggleYear = (year: string) => {
+  toggleYear(year);
+};
+
+onBeforeUnmount(() => {
+  if (timer) clearTimeout(timer);
+});
 </script>
 
 <template>
-  <main>
-    <h1>Crossref Vue Starter</h1>
-    <AppCard>
-      Example content.
-    </AppCard>
+  <main class="mx-auto max-w-6xl px-4 py-8">
+    <SearchBar :query="debouncedQuery" @update:query="onUpdateQuery" />
+    <div class="layout mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
+      <aside class="md:col-span-1">
+        <FacetPanel
+          :facets="facets"
+          :active-types="activeTypes"
+          :active-years="activeYears"
+          :is-loading="isLoading"
+          @toggle-type="onToggleType"
+          @toggle-year="onToggleYear"
+        />
+      </aside>
+      <ResultList v-if="query" :items="items?.message.items || []" :is-loading="isLoading" />
+    </div>
   </main>
 </template>
-
-<style scoped>
-main {
-  padding: 2rem;
-  max-width: 60ch;
-  margin: 0 auto;
-}
-h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-</style>
