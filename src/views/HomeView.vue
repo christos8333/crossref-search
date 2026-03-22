@@ -4,17 +4,21 @@ import { useSearch } from '@/composables/useSearch';
 import SearchBar from '@/components/SearchBar.vue';
 import ResultList from '@/components/ResultList.vue';
 import FacetPanel from '@/components/FacetPanel.vue';
+import PaginationBar from '@/components/PaginationBar.vue';
 
 const {
   activeTypes,
   activeYears,
   query,
+  currentPage,
+  canGoForward,
   setQuery,
   isLoading,
   items,
   facets,
   toggleType,
   toggleYear,
+  goToPage,
 } = useSearch();
 
 const debouncedQuery = ref(query.value);
@@ -63,7 +67,15 @@ onBeforeUnmount(() => {
           @toggle-year="onToggleYear"
         />
       </aside>
-      <ResultList v-if="query" :items="items?.message.items || []" :is-loading="isLoading" />
+      <ResultList v-if="query" :items="items" :is-loading="isLoading" />
+      <PaginationBar
+        v-if="query"
+        :page="currentPage"
+        :is-loading="isLoading"
+        :can-go-forward="canGoForward"
+        @next="goToPage(currentPage + 1)"
+        @page="goToPage"
+      />
     </div>
   </main>
 </template>
