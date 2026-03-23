@@ -34,15 +34,6 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
   const minYear = yearNums.length ? String(yearNums[0]) : null;
   const maxYear = yearNums.length ? String(yearNums[yearNums.length - 1]) : null;
 
-  const isContiguousSelection = (() => {
-    if (!yearNums.length) return true;
-    for (let i = 0; i < yearNums.length; i++) {
-      if (yearNums.includes(yearNums[0] + i)) continue;
-      return false;
-    }
-    return true;
-  })();
-
   const searchParams = new URLSearchParams();
   searchParams.set('query', query);
   searchParams.set('cursor', cursor || '*');
@@ -56,7 +47,7 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
   }
 
   if (minYear && maxYear) {
-    const { from, until } = yearToRange(minYear);
+    const { from, until } = yearToRange(minYear, maxYear);
 
     filterParts.push(`from-pub-date:${from}`);
     filterParts.push(`until-pub-date:${until}`);
@@ -99,10 +90,6 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
 
     if (Number.isFinite(computedTotal) && computedTotal > 0) {
       parsed.message['total-results'] = computedTotal;
-    }
-
-    if (!isContiguousSelection) {
-      parsed.message['next-cursor'] = null;
     }
   }
 

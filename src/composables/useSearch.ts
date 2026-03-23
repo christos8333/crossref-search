@@ -228,7 +228,7 @@ export function useSearch() {
       } catch (err) {
         const status = (err as { status?: number }).status;
         const isCursorExpired = status === 429 || status === 404;
-        if (isCursorExpired) break;
+        if (!isCursorExpired) break;
 
         queryClient.removeQueries({ queryKey: queryKey.value, exact: true });
       }
