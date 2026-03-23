@@ -1,8 +1,9 @@
 import { CrossrefResponseSchema } from '@/schemas/crossref';
 import type { CrossrefResponse } from '@/schemas/crossref';
+import { yearToRange } from '@/helpers/transformers';
 
 export const ROWS_PER_PAGE = 20; // items shown per UI page
-export const ROWS_PER_FETCH = 20;
+export const ROWS_PER_FETCH = 200;
 
 export type WorksFilters = {
   types: string[];
@@ -14,14 +15,33 @@ export type FetchWorksParams = {
   cursor: string;
   filters: WorksFilters;
   rows?: number;
+  signal?: AbortSignal;
 };
 
 export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResponse> {
-  const { query, cursor, filters, rows = ROWS_PER_FETCH } = params;
+  const { query, filters, cursor, rows = ROWS_PER_FETCH, signal } = params;
+
   const facet = 'type-name:*,published:10';
 
   const selectedTypes = filters.types.filter(Boolean);
   const selectedYears = filters.years.filter(Boolean);
+
+  const yearNums = selectedYears
+    .map((y) => Number(y))
+    .filter((n) => Number.isFinite(n))
+    .sort((a, b) => a - b);
+
+  const minYear = yearNums.length ? String(yearNums[0]) : null;
+  const maxYear = yearNums.length ? String(yearNums[yearNums.length - 1]) : null;
+
+  const isContiguousSelection = (() => {
+    if (!yearNums.length) return true;
+    for (let i = 0; i < yearNums.length; i++) {
+      if (yearNums.includes(yearNums[0] + i)) continue;
+      return false;
+    }
+    return true;
+  })();
 
   const searchParams = new URLSearchParams();
   searchParams.set('query', query);
@@ -35,8 +55,11 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
     filterParts.push(`type-name:${t}`);
   }
 
-  for (const t of selectedYears) {
-    filterParts.push(`from-pub-date:${t}`);
+  if (minYear && maxYear) {
+    const { from, until } = yearToRange(minYear);
+
+    filterParts.push(`from-pub-date:${from}`);
+    filterParts.push(`until-pub-date:${until}`);
   }
 
   if (filterParts.length > 0) {
@@ -47,17 +70,41 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
   url.search = searchParams.toString();
 
   const res = await fetch(url.toString(), {
+    signal,
     headers: {
       Accept: 'application/json',
     },
   });
+
   if (!res.ok) {
     const bodyText = await res.text().catch(() => '');
     const err = new Error(`Crossref request failed (${res.status}): ${bodyText}`);
+    (err as { status?: number }).status = res.status;
     throw err;
   }
+
   const json = await res.json();
   const parsed = CrossrefResponseSchema.parse(json);
+
+  if (selectedYears.length > 0) {
+    const selectedYearSet = new Set(selectedYears);
+    parsed.message.items = parsed.message.items.filter((item) =>
+      selectedYearSet.has(item.published),
+    );
+
+    const publishedFacet = parsed.message.facets?.published ?? [];
+    const computedTotal = publishedFacet
+      .filter((b) => selectedYearSet.has(b.value))
+      .reduce((sum, b) => sum + b.count, 0);
+
+    if (Number.isFinite(computedTotal) && computedTotal > 0) {
+      parsed.message['total-results'] = computedTotal;
+    }
+
+    if (!isContiguousSelection) {
+      parsed.message['next-cursor'] = null;
+    }
+  }
 
   return parsed;
 }

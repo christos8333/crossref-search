@@ -9,4 +9,11 @@ function parseCommaList(value: unknown): string[] {
   return [];
 }
 
-export { parseCommaList };
+function yearToRange(year: string) {
+  return {
+    from: `${year}-01-01`,
+    until: `${year}-12-31`,
+  };
+}
+
+export { parseCommaList, yearToRange };

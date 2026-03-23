@@ -14,11 +14,17 @@ const {
   canGoForward,
   setQuery,
   isLoading,
+  isError,
+  error,
   items,
   facets,
   toggleType,
   toggleYear,
   goToPage,
+  totalResults,
+  totalPages,
+  canGoBack,
+  visiblePages,
 } = useSearch();
 
 const debouncedQuery = ref(query.value);
@@ -55,7 +61,10 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="mx-auto max-w-6xl px-4 py-8">
-    <SearchBar :query="debouncedQuery" @update:query="onUpdateQuery" />
+    <SearchBar
+      :query="debouncedQuery"
+      @update:query="onUpdateQuery"
+    />
     <div class="layout mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
       <aside class="md:col-span-1">
         <FacetPanel
@@ -67,15 +76,52 @@ onBeforeUnmount(() => {
           @toggle-year="onToggleYear"
         />
       </aside>
-      <ResultList v-if="query" :items="items" :is-loading="isLoading" />
-      <PaginationBar
-        v-if="query"
-        :page="currentPage"
-        :is-loading="isLoading"
-        :can-go-forward="canGoForward"
-        @next="goToPage(currentPage + 1)"
-        @page="goToPage"
-      />
+      <section class="md:col-span-3">
+        <div
+          v-if="query"
+          aria-live="polite"
+          class="mb-3 text-sm text-slate-700"
+        >
+          {{ totalResults.toLocaleString() }} results
+        </div>
+
+        <div
+          v-if="isError"
+          class="rounded border border-red-200 bg-red-50 p-4 text-red-700"
+          role="alert"
+        >
+          Error loading results.
+          <span v-if="error instanceof Error"> {{ error.message }}</span>
+        </div>
+
+        <div v-else>
+          <ResultList
+            v-if="query"
+            :items="items"
+            :is-loading="isLoading"
+          />
+
+          <PaginationBar
+            v-if="query"
+            :page="currentPage"
+            :total-pages="totalPages"
+            :is-loading="isLoading"
+            :can-go-back="canGoBack"
+            :can-go-forward="canGoForward"
+            :visible-pages="visiblePages"
+            @prev="goToPage(currentPage - 1)"
+            @next="goToPage(currentPage + 1)"
+            @page="goToPage"
+          />
+
+          <p
+            v-if="!query"
+            class="rounded border border-slate-200 bg-slate-50 p-4 text-slate-700"
+          >
+            Enter a search term to begin
+          </p>
+        </div>
+      </section>
     </div>
   </main>
 </template>

@@ -1,11 +1,55 @@
 import { z } from 'zod';
 
+const AuthorSchema = z
+  .object({
+    given: z.string().nullable().optional(),
+    family: z.string().nullable().optional(),
+  })
+  .passthrough();
+
+export type Author = z.infer<typeof AuthorSchema>;
+
 // Result item
-export const WorkSchema = z.object({
-  DOI: z.string().nullable().optional(),
-  title: z.array(z.string()).nullable().optional(),
-  type: z.string().nullable().optional(),
-});
+export const WorkSchema = z
+  .object({
+    DOI: z.string().nullable().optional(),
+    title: z.array(z.string()).nullable().optional(),
+    author: z.array(AuthorSchema).nullable().optional(),
+    type: z.string().nullable().optional(),
+    abstract: z
+      .union([z.string(), z.array(z.string())])
+      .nullable()
+      .optional(),
+    published: z
+      .object({
+        'date-parts': z.array(z.array(z.number())).optional(),
+      })
+      .nullable()
+      .optional(),
+    'container-title': z.array(z.string()).nullable().optional(),
+  })
+  .transform((raw) => {
+    const yearFromDateParts = (dateParts: number[][] | undefined) => {
+      const year = dateParts?.[0]?.[0];
+      return typeof year === 'number' ? String(year) : '';
+    };
+
+    const publishedYear = yearFromDateParts(raw['published']?.['date-parts']);
+
+    const abstractValue = Array.isArray(raw.abstract)
+      ? raw.abstract.filter(Boolean).join(' ')
+      : raw.abstract;
+
+    return {
+      DOI: raw.DOI ?? '',
+      title: raw.title?.[0] ?? '',
+      author: raw.author ?? [],
+      type: raw.type ?? '',
+      published: publishedYear,
+      'container-title': raw['container-title']?.[0] ?? '',
+      abstract: abstractValue ? String(abstractValue) : undefined,
+    };
+  });
 
 export type Work = z.infer<typeof WorkSchema>;
 

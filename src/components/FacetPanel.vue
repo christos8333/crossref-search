@@ -19,8 +19,13 @@ const safeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-');
 <template>
   <div class="space-y-6">
     <fieldset class="rounded border border-slate-200 p-4">
-      <legend class="px-1 text-sm font-semibold text-slate-800">Record Type</legend>
-      <div v-if="facets['type-name'].length" class="mt-3 space-y-2">
+      <legend class="px-1 text-sm font-semibold text-slate-800">
+        Record Type
+      </legend>
+      <div
+        v-if="facets['type-name'].length"
+        class="mt-3 space-y-2"
+      >
         <label
           v-for="facet in facets['type-name']"
           :key="facet.value"
@@ -33,18 +38,28 @@ const safeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-');
             :checked="activeTypes.includes(facet.value)"
             :disabled="isLoading"
             @change="emit('toggle-type', facet.value)"
-          />
+          >
           <span>{{ facet.value }} ({{ facet.count }})</span>
         </label>
       </div>
 
-      <p v-else class="mt-3 text-sm text-slate-500">No record types found.</p>
+      <p
+        v-else
+        class="mt-3 text-sm text-slate-500"
+      >
+        No record types found.
+      </p>
     </fieldset>
 
     <fieldset class="rounded border border-slate-200 p-4">
-      <legend class="px-1 text-sm font-semibold text-slate-800">Publication Year</legend>
+      <legend class="px-1 text-sm font-semibold text-slate-800">
+        Publication Year
+      </legend>
 
-      <div v-if="facets.published.length" class="mt-3 space-y-2">
+      <div
+        v-if="facets.published.length"
+        class="mt-3 space-y-2"
+      >
         <label
           v-for="facet in facets.published"
           :key="facet.value"
@@ -57,12 +72,17 @@ const safeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-');
             :checked="activeYears.includes(facet.value)"
             :disabled="isLoading"
             @change="emit('toggle-year', facet.value)"
-          />
+          >
           <span>{{ facet.value }} ({{ facet.count }})</span>
         </label>
       </div>
 
-      <p v-else class="mt-3 text-sm text-slate-500">No publication years found.</p>
+      <p
+        v-else
+        class="mt-3 text-sm text-slate-500"
+      >
+        No publication years found.
+      </p>
     </fieldset>
   </div>
 </template>
