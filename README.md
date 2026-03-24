@@ -67,7 +67,7 @@ The app is organized around three core layers:
 
 In the first two hours, I prioritized system architecture and data integrity.
 
-I started by reading the Crossref API docs to understand cursor pagination and facet behavior. While researching the most efficient way to handle large-scale pagination, I used Crossref's cursor tutorial to evaluate how to navigate to [page n](https://crossref.gitlab.io/tutorials/cursor-based-pagination/) reliably with incremental fetching.
+I started by reading the Crossref API docs to understand cursor pagination and facet behavior. While researching the most efficient way to handle large-scale pagination, I used Crossref's cursor tutorial to evaluate how to navigate to [page cursor-based-pagination](https://crossref.gitlab.io/tutorials/cursor-based-pagination/) reliably with incremental fetching.
 
 Also, I evaluated whether TanStack Query was the right fit for server-state management and started implementing the Zod schemas and mappers to ensure the API data were validated and normalized before reaching the UI.
 
