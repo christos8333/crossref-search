@@ -35,7 +35,7 @@ export async function fetchWorks(params: FetchWorksParams): Promise<CrossrefResp
   const maxYear = yearNums.length ? String(yearNums[yearNums.length - 1]) : null;
 
   const searchParams = new URLSearchParams();
-  searchParams.set('query', query);
+  searchParams.set('query.bibliographic', query);
   searchParams.set('cursor', cursor || '*');
   searchParams.set('facet', facet);
   searchParams.set('rows', String(rows));
