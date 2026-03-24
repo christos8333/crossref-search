@@ -16,23 +16,23 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <nav
+    class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    aria-label="Pagination"
+  >
     <div class="flex items-center gap-2">
       <button
         type="button"
         aria-label="Go to previous page"
-        class="rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+        class="rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         :disabled="isLoading || !canGoBack"
         @click="emit('prev')"
       >
         Previous
       </button>
 
-      <div
-        aria-live="polite"
-        class="text-sm text-slate-600"
-      >
-        Page {{ props.page }} of {{ props.totalPages }}
+      <div aria-live="polite" class="text-sm text-slate-600">
+        Page {{ props.page }}/{{ props.totalPages }}
       </div>
     </div>
 
@@ -41,7 +41,9 @@ const emit = defineEmits<{
         v-for="p in props.visiblePages"
         :key="p"
         type="button"
-        class="rounded px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+        :aria-label="`Go to page ${p}`"
+        :aria-current="p === props.page ? 'page' : undefined"
+        class="rounded px-3 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         :class="
           p === props.page
             ? 'bg-slate-900 text-white'
@@ -56,12 +58,12 @@ const emit = defineEmits<{
       <button
         type="button"
         aria-label="Go to next page"
-        class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+        class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         :disabled="isLoading || !canGoForward"
         @click="emit('next')"
       >
         Next page →
       </button>
     </div>
-  </div>
+  </nav>
 </template>

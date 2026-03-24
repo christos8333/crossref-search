@@ -35,6 +35,7 @@ const safeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-');
           <input
             :id="`type-${safeId(facet.value)}`"
             type="checkbox"
+            class="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             :checked="activeTypes.includes(facet.value)"
             :disabled="isLoading"
             @change="emit('toggle-type', facet.value)"
@@ -69,6 +70,7 @@ const safeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-');
           <input
             :id="`year-${safeId(facet.value)}`"
             type="checkbox"
+            class="h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             :checked="activeYears.includes(facet.value)"
             :disabled="isLoading"
             @change="emit('toggle-year', facet.value)"

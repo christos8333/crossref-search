@@ -48,7 +48,7 @@ const displayedAbstract = computed(() => {
         :href="`https://doi.org/${work.DOI}`"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-blue-700 hover:underline"
+        class="text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       >
         {{ work.title }}
       </a>
@@ -94,7 +94,7 @@ const displayedAbstract = computed(() => {
       <button
         v-if="shouldTruncateAbstract"
         type="button"
-        class="mt-2 text-sm font-medium text-blue-700 hover:underline"
+        class="mt-2 text-sm font-medium text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         :aria-expanded="showFullAbstract"
         @click="showFullAbstract = !showFullAbstract"
       >

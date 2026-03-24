@@ -61,12 +61,10 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="mx-auto max-w-6xl px-4 py-8">
-    <SearchBar
-      :query="debouncedQuery"
-      @update:query="onUpdateQuery"
-    />
+    <h1 class="text-2xl font-bold tracking-tight text-slate-900">Crossref Metadata Search</h1>
+    <SearchBar :query="debouncedQuery" @update:query="onUpdateQuery" />
     <div class="layout mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
-      <aside class="md:col-span-1">
+      <aside class="md:col-span-1" aria-label="Filters">
         <FacetPanel
           :facets="facets"
           :active-types="activeTypes"
@@ -76,14 +74,15 @@ onBeforeUnmount(() => {
           @toggle-year="onToggleYear"
         />
       </aside>
-      <section class="md:col-span-3">
-        <div
-          v-if="query"
-          aria-live="polite"
-          class="mb-3 text-sm text-slate-700"
-        >
+      <section class="md:col-span-3" aria-label="Search results">
+        <div v-if="query" aria-live="polite" class="mb-3 text-sm text-slate-700">
           {{ totalResults.toLocaleString() }} results
         </div>
+        <p v-if="query" aria-live="polite" class="sr-only" role="status">
+          {{
+            isLoading ? 'Loading results...' : `${totalResults.toLocaleString()} results loaded.`
+          }}
+        </p>
 
         <div
           v-if="isError"
@@ -95,11 +94,13 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else>
-          <ResultList
+          <div
             v-if="query"
-            :items="items"
-            :is-loading="isLoading"
-          />
+            class="max-h-[78vh] overflow-y-auto pr-1"
+            aria-label="Results list scroll area"
+          >
+            <ResultList :items="items" :is-loading="isLoading" />
+          </div>
 
           <PaginationBar
             v-if="query"
@@ -114,10 +115,7 @@ onBeforeUnmount(() => {
             @page="goToPage"
           />
 
-          <p
-            v-if="!query"
-            class="rounded border border-slate-200 bg-slate-50 p-4 text-slate-700"
-          >
+          <p v-if="!query" class="rounded border border-slate-200 bg-slate-50 p-4 text-slate-700">
             Enter a search term to begin
           </p>
         </div>

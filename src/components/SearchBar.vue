@@ -15,11 +15,8 @@ const onInput = (event: Event) => {
 
 <template>
   <div class="mb-4">
-    <label
-      for="crossref-search"
-      class="block text-sm font-medium text-slate-700"
-    >
-      Search Crossref metadata
+    <label for="crossref-search" class="block text-sm font-medium text-slate-700">
+      Type you search term
     </label>
     <input
       id="crossref-search"
@@ -29,6 +26,6 @@ const onInput = (event: Event) => {
       class="mt-1 w-full rounded border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
       placeholder="e.g. climate change"
       @input="onInput"
-    >
+    />
   </div>
 </template>

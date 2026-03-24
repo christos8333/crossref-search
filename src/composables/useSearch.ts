@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/vue-query';
-import { fetchWorks, ROWS_PER_PAGE } from '@/services/crossrefApi';
+import { fetchWorks, ROWS_PER_PAGE, ROWS_PER_FETCH } from '@/services/crossrefApi';
 import type { CrossrefResponse, Facets, Work, FacetBucket } from '@/schemas/crossref';
 import { parseCommaList } from '@/helpers/transformers';
 
@@ -30,21 +30,30 @@ export function useSearch() {
   );
 
   const currentPage = ref(1);
+  const isCursorExpired = ref(false);
 
   const queryResult = useInfiniteQuery({
     queryKey,
     initialPageParam: '*' as CursorValue,
     getNextPageParam: (lastPage: CrossrefResponse) => lastPage.message['next-cursor'] ?? undefined,
     queryFn: async ({ pageParam, signal }) => {
+      const rows = isCursorExpired.value ? 1000 : ROWS_PER_FETCH;
+
       return await fetchWorks({
         query: query.value,
         filters: { types: activeTypes.value, years: activeYears.value },
         cursor: pageParam as CursorValue,
         signal,
+        rows,
       });
     },
 
     enabled: queryEnabled,
+    retry: (failureCount, err) => {
+      const status = (err as { status?: number }).status;
+      if (status === 429 || status === 404) return false;
+      return failureCount < 3;
+    },
     staleTime: 60 * 60 * 1000,
   });
 
@@ -216,20 +225,25 @@ export function useSearch() {
     const requiredItems = lastPageToPrefetch * ROWS_PER_PAGE;
 
     currentPage.value = targetPage;
-    if (flatItems.value.length >= requiredItems) return;
+    if (flatItems.value.length > requiredItems) return;
 
     while (
-      flatItems.value.length < requiredItems &&
+      flatItems.value.length <= requiredItems &&
       queryResult.hasNextPage.value !== false &&
-      (totalResults.value === 0 || requiredItems < totalResults.value)
+      (totalResults.value === 0 || requiredItems <= totalResults.value)
     ) {
       try {
         await queryResult.fetchNextPage({ throwOnError: true });
+
+        if (targetPage * ROWS_PER_PAGE - flatItems.value.length < 1000) {
+          isCursorExpired.value = false;
+        }
       } catch (err) {
         const status = (err as { status?: number }).status;
-        const isCursorExpired = status === 429 || status === 404;
-        if (!isCursorExpired) break;
+        const isCursorExpiredStatus = status === 429 || status === 404;
+        if (!isCursorExpiredStatus) break;
 
+        isCursorExpired.value = true;
         queryClient.removeQueries({ queryKey: queryKey.value, exact: true });
       }
     }
